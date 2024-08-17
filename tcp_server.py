@@ -2,7 +2,7 @@ import socket
 
 
 def tcp_server():
-    feeding_success = set()  # Отслеживание успешного кормления
+    feeding_success = set()
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.bind(("0.0.0.0", 54321))
     server_socket.listen(5)

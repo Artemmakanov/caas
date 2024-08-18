@@ -1,28 +1,54 @@
 import socket
+import os
+import json
+from collections import defaultdict
+from datetime import datetime
 
+CHUNK_SIZE = int(os.environ.get('CHUNK_SIZE'))
 
 def tcp_server():
-    feeding_success = set()
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
     server_socket.bind(("0.0.0.0", 54321))
     server_socket.listen(5)
     print("TCP сервер запущен и ожидает соединений")
 
     while True:
+        message = ''
         conn, addr = server_socket.accept()
-        data = conn.recv(1024).decode().strip()
+        message_chunk = conn.recv(CHUNK_SIZE).decode('utf-8').strip()
+        message += message_chunk
+        # print(message)
         
-        responses = []
-        for user_id in data.split("~"):
-            if user_id:
-                if user_id in feeding_success:
-                    responses.append("Tolerated by the Cat")
-                else:
-                    responses.append("Scratched by the Cat")
+        while message_chunk and message_chunk[-1] != '~':
+            conn.close()
+            conn, addr = server_socket.accept()
+            message_chunk = conn.recv(CHUNK_SIZE).decode('utf-8').strip()
+            message += message_chunk
+            # print(message)
         
-        conn.send("".join(responses).encode())
+        with open('data/log.json', 'r') as f:
+            STATS = json.load(f)
+            STATS['feed'] = defaultdict(list, STATS['feed'])
+            STATS['pet'] = defaultdict(list, STATS['pet'])
+
+        response = ''
+        for user_id in message.split('~')[:-1]:
+            print(STATS['feed'][user_id])
+            tolerated = any(dct['success'] for dct in STATS['feed'][user_id])
+            STATS['pet'][user_id].append({
+                'success': tolerated,
+                'time': datetime.now().strftime("%m/%d/%Y, %H:%M:%S")})
+            
+            with open('data/log.json', 'w') as f:
+                json.dump(STATS, f)
+
+            response += 'Tolerated by the Cat' if tolerated else 'Scratched by the Cat'
+
+        conn.sendall(response.encode())
         conn.close()
-    
+
 
 
 if __name__ == "__main__":

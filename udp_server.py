@@ -18,7 +18,6 @@ def udp_server():
 
     cat_preferences = {"Milk", "Meat"} 
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_socket.bind(("0.0.0.0", 12345))
     print("UDP сервер запущен и ожидает соединений")
 
@@ -45,10 +44,9 @@ def udp_server():
         
         with open('data/log.json', 'w') as f:
             json.dump(STATS, f)
-            
+
         server_socket.sendto(response.encode(), addr)
 
 
 if __name__ == "__main__":
-
     udp_server()

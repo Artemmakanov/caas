@@ -12,15 +12,6 @@ class CustomDNSResolver:
         reply = request.reply()
         qname = str(request.q.qname)
         qtype = QTYPE[request.q.qtype]
-        # print("="*10)
-        # print(f'|||{qname}|||', qtype)
-        # print("="*10)
-        # print(qname in dns_records)
-        # print(qtype == 'SRV')
-        # print(dns_records)
-        # for i, c in enumerate(qname):
-        #     if c != dns_records.keys()[0][i]:
-        #         print(i, c, dns_records.keys()[0][i])
 
         if qname in dns_records and qtype == 'SRV':
             reply.add_answer(RR(qname, QTYPE.SRV, rdata=dns_records[qname]))

@@ -35,7 +35,9 @@ def udp_server():
             message_chunk = data.decode().strip()
             message_chunk, fragment_number = message_chunk.split('~')
             message += message_chunk
-            
+        
+
+        try:
         user_id, food = message.split(" - ")
         response = "Eaten by the Cat" if food in cat_preferences else "Ignored by the Cat"
         STATS['feed'][user_id].append({
